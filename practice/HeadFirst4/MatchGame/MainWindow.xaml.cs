@@ -4,19 +4,34 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace MatchGame
 {
+    using System.Windows.Threading;
     public partial class MainWindow : Window
     {
+        DispatcherTimer timer = new DispatcherTimer();
+        int tenthOfSecondsElapsed;
+        int matchesFound;
+
         public MainWindow()
         {
             InitializeComponent();
+
+            timer.Interval = TimeSpan.FromSeconds(.1);
+            timer.Tick += Timer_Tick;
             SetUpGame();
+        }
+
+        private void Timer_Tick(object? sender, EventArgs e)
+        {
+            tenthOfSecondsElapsed++;
+            timeTextBlock.Text = (tenthOfSecondsElapsed / 10F).ToString("0.0s");
+            if (matchesFound == 8)
+            {
+                timer.Stop();
+                timeTextBlock.Text = timeTextBlock.Text + " - Play again?";
+            }
         }
 
         private void SetUpGame() // объявляем приватный(?) метод SetUpGame
@@ -40,11 +55,19 @@ namespace MatchGame
             // Проходимся по каждому элементу textblock класса TextBlock, лежащими внутри XAML, а именно - по детям TextBlock внутри сетки с именем mainGrid
             foreach (TextBlock textblock in mainGrid.Children.OfType<TextBlock>())
             {
-                int index = random.Next(animalEmoji.Count); // создаём целочисленный index и присваиваем ему рандомное значение. Берём мы его из текущего кол-ва элементов (Count) списка animalEmoji
-                string nextEmoji = animalEmoji[index]; // создаём строку nextEmoji, которой присваиваем эмодзи. Эмодзи достаём по вышеназначенному индексу
-                textblock.Text = nextEmoji; // берём textblock и обращаемся к его тексту Text, а затем присваиваем ему наш эмодзи
-                animalEmoji.RemoveAt(index); // после всех манипуляций из нашего списка animalEmoji удаляем один эмодзи, таким образом избавляясь от уже использованных эмодзи
+                if (textblock.Name != "timeTextBlock")
+                {
+                    textblock.Visibility = Visibility.Visible;
+                    int index = random.Next(animalEmoji.Count); // создаём целочисленный index и присваиваем ему рандомное значение. Берём мы его из текущего кол-ва элементов (Count) списка animalEmoji
+                    string nextEmoji = animalEmoji[index]; // создаём строку nextEmoji, которой присваиваем эмодзи. Эмодзи достаём по вышеназначенному индексу
+                    textblock.Text = nextEmoji; // берём textblock и обращаемся к его тексту Text, а затем присваиваем ему наш эмодзи
+                    animalEmoji.RemoveAt(index); // после всех манипуляций из нашего списка animalEmoji удаляем один эмодзи, таким образом избавляясь от уже использованных эмодзи
+                }
             }
+
+            timer.Start();
+            tenthOfSecondsElapsed = 0;
+            matchesFound = 0;
         }
 
         TextBlock lastTextBlockClicked;
@@ -60,6 +83,7 @@ namespace MatchGame
             }
             else if (textBlock.Text == lastTextBlockClicked.Text)
             {
+                matchesFound++;
                 textBlock.Visibility = Visibility.Hidden;
                 findingMatch = false;
             }
@@ -67,6 +91,14 @@ namespace MatchGame
             {
                 lastTextBlockClicked.Visibility = Visibility.Visible;
                 findingMatch = false;
+            }
+        }
+
+        private void TimeTextBlock_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (matchesFound == 8)
+            {
+                SetUpGame();
             }
         }
     }
