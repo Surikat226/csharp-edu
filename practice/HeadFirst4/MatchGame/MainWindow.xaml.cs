@@ -13,6 +13,7 @@ namespace MatchGame
         DispatcherTimer timer = new DispatcherTimer();
         int tenthOfSecondsElapsed;
         int matchesFound;
+        int bestTime = int.MaxValue;
 
         public MainWindow()
         {
@@ -27,14 +28,24 @@ namespace MatchGame
         {
             tenthOfSecondsElapsed++;
             timeTextBlock.Text = (tenthOfSecondsElapsed / 10F).ToString("0.0s");
-            if (matchesFound == 8)
+            if (matchesFound == 10)
             {
                 timer.Stop();
+                SetBestTime();
                 timeTextBlock.Text = timeTextBlock.Text + " - Play again?";
             }
         }
 
-        private void SetUpGame() // объявляем приватный(?) метод SetUpGame
+        private void SetBestTime()
+        {
+            if (tenthOfSecondsElapsed < bestTime)
+            {
+                bestTime = tenthOfSecondsElapsed;
+                bestTimeTextBlock.Text = bestTimeTextBlock.Text + (bestTime / 10F).ToString("0.0s");
+            }
+        }
+
+        private void SetUpGame() // объявляем приватный (private) метод SetUpGame, который ничего не возвращает (void)
         {
             // Объявляем список List, который будет состоять из стрингов и присваиваем ему имя animalEmoji
             // =
@@ -49,13 +60,15 @@ namespace MatchGame
                 "🐷", "🐷",
                 "🦧", "🦧",
                 "🦆", "🦆",
-                "🦊", "🦊"
+                "🦊", "🦊",
+                "🦜", "🦜",
+                "🦨", "🦨"
             };
             Random random = new Random(); // создаём объект random класса Random
             // Проходимся по каждому элементу textblock класса TextBlock, лежащими внутри XAML, а именно - по детям TextBlock внутри сетки с именем mainGrid
             foreach (TextBlock textblock in mainGrid.Children.OfType<TextBlock>())
             {
-                if (textblock.Name != "timeTextBlock")
+                if (textblock.Name != "timeTextBlock" && textblock.Name != "bestTimeTextBlock")
                 {
                     textblock.Visibility = Visibility.Visible;
                     int index = random.Next(animalEmoji.Count); // создаём целочисленный index и присваиваем ему рандомное значение. Берём мы его из текущего кол-ва элементов (Count) списка animalEmoji
@@ -96,7 +109,7 @@ namespace MatchGame
 
         private void TimeTextBlock_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (matchesFound == 8)
+            if (matchesFound == 10)
             {
                 SetUpGame();
             }
